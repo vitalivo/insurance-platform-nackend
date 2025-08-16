@@ -176,7 +176,7 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # Только в разработке
 if not DEBUG:
     # В продакшене разрешаем только Vercel
     CORS_ALLOWED_ORIGINS = [
-        'https://your-frontend-domain.vercel.app',  # Замените на ваш домен
+        'https://insurance-platform-frontend.vercel.app',  # Замените на ваш домен
         'https://localhost:3000',  # Для локальной разработки
     ]
 else:
