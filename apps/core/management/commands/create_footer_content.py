@@ -1,10 +1,20 @@
 from django.core.management.base import BaseCommand
 from apps.core.models import PageContent
+from apps.applications.models import ApplicationStatus
 
 class Command(BaseCommand):
     help = 'Создает базовый контент для футера, хедера и страниц'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Принудительно обновить существующие записи',
+        )
+
     def handle(self, *args, **options):
+        force_update = options['force']
+        
         # КОНТЕНТ ДЛЯ ХЕДЕРА (НОВОЕ!)
         header_content = [
             # Логотип и компания
@@ -45,10 +55,10 @@ class Command(BaseCommand):
             ('footer', 'info_links', 'privacy_policy_text', 'Политика конфиденциальности', 'text'),
             ('footer', 'info_links', 'privacy_policy_link', '/pages/privacy', 'text'),
             
-            # Социальные сети
-            ('footer', 'social', 'vk_link', 'https://vk.com/strah_platform', 'text'),
-            ('footer', 'social', 'telegram_link', 'https://t.me/strah_platform', 'text'),
-            ('footer', 'social', 'youtube_link', 'https://youtube.com/@strah_platform', 'text'),
+            # Социальные сети (ПУСТЫЕ - чтобы не показывались по умолчанию)
+            ('footer', 'social', 'vk_link', '', 'text'),
+            ('footer', 'social', 'telegram_link', '', 'text'),
+            ('footer', 'social', 'youtube_link', '', 'text'),
             
             # Копирайт
             ('footer', 'copyright', 'text', '© 2025 СтрахПлатформа. Все права защищены.', 'text'),
@@ -56,7 +66,7 @@ class Command(BaseCommand):
             ('footer', 'copyright', 'rsa_text', 'Член РСА', 'text'),
         ]
 
-        # Контент для страниц (тот же что был)
+        # Контент для страниц (весь контент из вашего файла)
         pages_content = [
             # О компании
             ('about', 'main', 'content', '''
@@ -246,8 +256,13 @@ class Command(BaseCommand):
             ''', 'html'),
         ]
 
-        # Создаем контент для хедера
-        for page_name, section_name, content_key, content_value, content_type in header_content:
+        # Создаем весь контент
+        created_count = 0
+        updated_count = 0
+        
+        all_content = header_content + footer_content + pages_content
+        
+        for page_name, section_name, content_key, content_value, content_type in all_content:
             obj, created = PageContent.objects.get_or_create(
                 page_name=page_name,
                 section_name=section_name,
@@ -258,53 +273,54 @@ class Command(BaseCommand):
                 }
             )
             if created:
+                created_count += 1
                 self.stdout.write(f"✅ Создано: {page_name}.{section_name}.{content_key}")
-            else:
-                # Обновляем существующие записи
+            elif force_update:
+                # Обновляем существующие записи ТОЛЬКО с флагом --force
                 obj.content_value = content_value
                 obj.content_type = content_type
                 obj.save()
+                updated_count += 1
                 self.stdout.write(f"🔄 Обновлено: {page_name}.{section_name}.{content_key}")
-
-        # Создаем контент для футера
-        for page_name, section_name, content_key, content_value, content_type in footer_content:
-            obj, created = PageContent.objects.get_or_create(
-                page_name=page_name,
-                section_name=section_name,
-                content_key=content_key,
-                defaults={
-                    'content_value': content_value,
-                    'content_type': content_type
-                }
-            )
-            if created:
-                self.stdout.write(f"✅ Создано: {page_name}.{section_name}.{content_key}")
-            else:
-                # Обновляем существующие записи
-                obj.content_value = content_value
-                obj.content_type = content_type
-                obj.save()
-                self.stdout.write(f"🔄 Обновлено: {page_name}.{section_name}.{content_key}")
-
-        # Создаем контент для страниц
-        for page_name, section_name, content_key, content_value, content_type in pages_content:
-            obj, created = PageContent.objects.get_or_create(
-                page_name=page_name,
-                section_name=section_name,
-                content_key=content_key,
-                defaults={
-                    'content_value': content_value,
-                    'content_type': content_type
-                }
-            )
-            if created:
-                self.stdout.write(f"✅ Создано: {page_name}.{section_name}.{content_key}")
             else:
                 self.stdout.write(f"ℹ️  Уже существует: {page_name}.{section_name}.{content_key}")
 
+        # Создаем статусы заявок
+        self.stdout.write("\n📋 Создание статусов заявок...")
+        statuses = [
+            ('Новая', '#3B82F6', 'Новая заявка, ожидает обработки', False, 1),
+            ('В обработке', '#F59E0B', 'Заявка принята в работу', False, 2),
+            ('Требует уточнения', '#EF4444', 'Необходимы дополнительные документы', False, 3),
+            ('Одобрена', '#10B981', 'Заявка одобрена, готовится полис', False, 4),
+            ('Полис выдан', '#059669', 'Полис оформлен и выдан клиенту', True, 5),
+            ('Отклонена', '#DC2626', 'Заявка отклонена', True, 6),
+        ]
+        
+        status_created_count = 0
+        for name, color, description, is_final, sort_order in statuses:
+            obj, created = ApplicationStatus.objects.get_or_create(
+                name=name,
+                defaults={
+                    'color': color,
+                    'description': description,
+                    'is_final': is_final,
+                    'sort_order': sort_order
+                }
+            )
+            if created:
+                status_created_count += 1
+                self.stdout.write(f"✅ Создан статус: {name}")
+            else:
+                self.stdout.write(f"ℹ️  Статус уже существует: {name}")
+
+        # Итоговая статистика
         self.stdout.write(
-            self.style.SUCCESS('\n🎉 Базовый контент для хедера, футера и страниц успешно создан!')
+            self.style.SUCCESS(f'\n🎉 Готово!')
         )
+        self.stdout.write(f"📄 Создано записей контента: {created_count}")
+        if updated_count > 0:
+            self.stdout.write(f"🔄 Обновлено записей: {updated_count}")
+        self.stdout.write(f"📋 Создано статусов: {status_created_count}")
         self.stdout.write(
-            self.style.SUCCESS('Теперь ВСЕ данные управляются через админку!')
+            self.style.SUCCESS('✅ Все данные успешно загружены!')
         )
