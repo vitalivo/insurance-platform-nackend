@@ -51,7 +51,7 @@ class ProductField(BaseModel):
         ('number', 'Число'),
         ('date', 'Дата'),
         ('select', 'Выпадающий список'),
-        ('checkbox', 'Чекбокс'),
+        # ('checkbox', 'Чекбокс'),
         ('textarea', 'Многострочный текст'),
     ]
     
