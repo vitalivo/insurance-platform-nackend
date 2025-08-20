@@ -214,7 +214,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@strahplatforma.ru')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='goshkoxxxx@gmail.com')
 EMAIL_TIMEOUT = 30
 # ИСПРАВЛЕНИЕ SSL ПРОБЛЕМ В РАЗРАБОТКЕ
 EMAIL_SSL_CERTFILE = None
@@ -226,7 +226,7 @@ if config('USE_CONSOLE_EMAIL', default=False, cast=bool):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Notification settings
-ADMIN_EMAIL = config('ADMIN_EMAIL', default='admin@strahplatforma.ru')
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='goshkoxxxx@gmail.com')
 SITE_NAME = config('SITE_NAME', default='СтрахПлатформа')
 SITE_URL = config('SITE_URL', default='http://localhost:3000')
 
