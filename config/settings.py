@@ -207,32 +207,41 @@ CORS_ALLOWED_HEADERS = [
 ]
 
 # Email settings - ИСПОЛЬЗУЕМ КАСТОМНЫЙ BACKEND
-EMAIL_BACKEND = 'config.settings.CustomSMTPBackend'  # Указываем путь к нашему классу
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='goshkoxxxx@gmail.com')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'goshkoxxxx@gmail.com'
+EMAIL_HOST_PASSWORD = 'yyuwhbnfejsfpscd'  # без пробелов!
+DEFAULT_FROM_EMAIL = 'goshkoxxxx@gmail.com'
+SERVER_EMAIL = config('SERVER_EMAIL', default='goshkoxxxx@gmail.com')
 EMAIL_TIMEOUT = 30
-# ИСПРАВЛЕНИЕ SSL ПРОБЛЕМ В РАЗРАБОТКЕ
-EMAIL_SSL_CERTFILE = None
-EMAIL_SSL_KEYFILE = None
-EMAIL_TIMEOUT = 30
+
+# Notification settings (ЭТО ДОЛЖНО БЫТЬ В settings.py, а не в .env!)
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='goshkoxxx@inbox.ru')
+NOTIFICATION_EMAIL = config('NOTIFICATION_EMAIL', default='goshkoxxx@inbox.ru')
+
+# Admin lists
+ADMINS = [
+    ('Your Name', config('ADMIN_EMAIL', default='goshkoxxxx@gmail.com')),
+]
+
+MANAGERS = [
+    ('Your Name', config('ADMIN_EMAIL', default='goshkoxxxx@gmail.com')),
+]
 
 # Для отладки можно временно использовать консоль:
 if config('USE_CONSOLE_EMAIL', default=False, cast=bool):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Notification settings
-ADMIN_EMAIL = config('ADMIN_EMAIL', default='goshkoxxxx@gmail.com')
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='goshkoxxx@inbox.ru')
 SITE_NAME = config('SITE_NAME', default='СтрахПлатформа')
 SITE_URL = config('SITE_URL', default='http://localhost:3000')
 
-# Telegram settings
-TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
-TELEGRAM_CHAT_ID = config('TELEGRAM_CHAT_ID', default='')
+# # Telegram settings
+# TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
+# TELEGRAM_CHAT_ID = config('TELEGRAM_CHAT_ID', default='')
 
 # Celery settings
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
