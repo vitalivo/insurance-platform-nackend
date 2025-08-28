@@ -55,7 +55,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(','
 if not DEBUG:
     ALLOWED_HOSTS.extend([
         '.onrender.com',  # Все поддомены Render
-        'your-backend-name.onrender.com',  # Замените на ваше имя сервиса
+        'insurance-platform-nackend.onrender.com',  # Ваш конкретный домен
     ])
 
 # Application definition
@@ -116,20 +116,44 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
-# # Database
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default=f"postgresql://{config('DB_USER', default='postgres')}:{config('DB_PASSWORD', default='')}@{config('DB_HOST', default='localhost')}:{config('DB_PORT', default='5432')}/{config('DB_NAME', default='insurance_platform')}"
-#     )
-# }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# 🔧 ИСПРАВЛЕНО: ИСПОЛЬЗУЕМ PostgreSQL В ПРОДАКШЕНЕ
+# Database configuration
+if config('DATABASE_URL', default=None):
+    # Render автоматически предоставляет DATABASE_URL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+    print("✅ Используется PostgreSQL из DATABASE_URL")
+else:
+    # Локальная разработка - можно использовать SQLite
+    if DEBUG:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+        print("⚠️ Используется SQLite (только для разработки)")
+    else:
+        # В продакшене ОБЯЗАТЕЛЬНО PostgreSQL
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='insurance_platform'),
+                'USER': config('DB_USER', default='postgres'),
+                'PASSWORD': config('DB_PASSWORD', default=''),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default='5432'),
+                'OPTIONS': {
+                    'connect_timeout': 60,
+                },
+            }
+        }
+        print("✅ Используется PostgreSQL из переменных окружения")
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -300,7 +324,6 @@ LOGGING = {
 
 # Создаем директорию для логов
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
-
 
 # В конец файла settings.py добавьте:
 import ssl
